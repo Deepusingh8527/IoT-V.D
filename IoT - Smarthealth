@@ -1,0 +1,82 @@
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+
+// Motor A
+int pin1 = 19; // Right side Forward
+int pin2 = 21; // Right side Reverse
+int pin3 = 22; // Right side Forward
+int pin4 = 23; // Right side Reverse
+
+// Motor B
+int pin5 = 12; // Left side Forward
+int pin6 = 14; // Left side Forward
+int pin7 = 27; // Left side Reverse
+int pin8 = 26; // Left side Reverse
+
+// Your Firebase project credentials
+#define FIREBASE_HOST "virtualdoctor-xxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx"
+#define FIREBASE_AUTH "zPMKGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+FirebaseData firebaseData;
+
+void setup() {
+  pinMode(pin1, OUTPUT);
+  pinMode(pin2, OUTPUT);
+  pinMode(pin3, OUTPUT);
+  pinMode(pin4, OUTPUT);
+  pinMode(pin5, OUTPUT);
+  pinMode(pin6, OUTPUT);
+  pinMode(pin7, OUTPUT);
+  pinMode(pin8, OUTPUT);
+
+  // Connect to Wi-Fi
+  WiFi.begin("SSID", "Password"); // Replace with your WiFi credentials
+
+  // Initialize Firebase
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true);
+}
+
+void setMotorState(int pinA1, int pinA2, int pinB1, int pinB2) {
+  digitalWrite(pinA1, HIGH);
+  digitalWrite(pinA2, HIGH);
+  digitalWrite(pinB1, HIGH);
+  digitalWrite(pinB2, HIGH);
+}
+
+void stopMotors() {
+  digitalWrite(pin1, LOW);
+  digitalWrite(pin2, LOW);
+  digitalWrite(pin3, LOW);
+  digitalWrite(pin4, LOW);
+  digitalWrite(pin5, LOW);
+  digitalWrite(pin6, LOW);
+  digitalWrite(pin7, LOW);
+  digitalWrite(pin8, LOW);
+}
+
+void loop() {
+  Firebase.getString(firebaseData, "/Dx");
+  String check = firebaseData.stringData();
+
+  switch (check.toInt()) {
+    case 1:
+      setMotorState(pin1, pin3, pin6, pin5);
+      break;
+    case 2:
+      setMotorState(pin1, pin3, pin8, pin7);
+      break;
+    case 3:
+      setMotorState(pin2, pin4, pin8, pin7);
+      break;
+    case 4:
+      setMotorState(pin2, pin4, pin6, pin5);
+      break;
+    case 0:
+      stopMotors();
+      break;
+    default:
+      stopMotors();
+      break;
+  }
+}
